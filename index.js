@@ -148,6 +148,13 @@ let items = [
   response.status(204).end()
 })
 
+app.put('/api/items/:id', (request, response) => {
+const id = Number(request.params.id)
+item = items.filter(item => item.id === id)
+item.usages.concat(request.body)
+response.status(204).end()
+})
+
   app.post('/api/items', (request, response) => {
 
     const body = request.body
