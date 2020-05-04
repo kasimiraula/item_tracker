@@ -3,6 +3,7 @@ const cors = require('cors')
 const app = express()
 
 app.use(express.static('build'))
+app.use(express.json())
 app.use(cors())
 
 let items = [
@@ -148,17 +149,49 @@ let items = [
   response.status(204).end()
 })
 
-app.put('/api/items/:id', (request, response) => {
-const id = Number(request.params.id)
-item = items.filter(item => item.id === id)
-item.usages.concat(request.body)
-response.status(204).end()
+
+/*blogsRouter.put('/:id', async (request, response) => {
+  try {
+    const body = validateBlogParams(request.body)
+    if (body === null) {
+      response.status(400).send({error: 'bad params given'})
+    } else {
+    const item = {
+      name: body.name,
+      units: body.units,
+      common_usages: body.common_usages,
+      usages: body.usages,
+      id: body.id,
+    }
+      }
+
+      const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true }).populate('user', {username: 1, name:1}).populate('comments', {_id: 1, content:1})
+      response.json(formatBlog(updatedBlog))
+    }
+  } catch (error) {
+    console.log(error)
+    response.status(400).send({ error: 'id does not exist' })
+  }
+})*/
+  app.put('/api/items/:id', (request, response) => {
+    const body = request.body
+    const item = {
+      name: body.name,
+      units: body.units,
+      common_usage: body.common_usage,
+      usage: body.usage,
+      id: body.id,
+    }
+
+    items = items.filter(i => i.id !== item.id).concat(item)
+    response.status(204).end()
+
 })
 
   app.post('/api/items', (request, response) => {
 
     const body = request.body
-
+    console.log(request.body)
     if (!body.name) {
       return response.status(400).json({
         error: 'item name is missing'
@@ -167,9 +200,9 @@ response.status(204).end()
 
     const item = {
       name: body.name,
-      units: body.units || "km",
-      common_usages: body.common_usages||[],
-      usages: [],
+      units: body.units,
+      common_usage: body.common_usage||[],
+      usage: [],
       id: generateId(),
     }
 
