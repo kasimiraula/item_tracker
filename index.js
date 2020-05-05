@@ -1,3 +1,6 @@
+const Item = require('./models/item')
+require('dotenv').config()
+
 const express = require('express')
 const cors = require('cors')
 const app = express()
@@ -6,212 +9,118 @@ app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 
-let items = [
-  {
-    "name": "Bristol",
-    "units": "km",
-    "usage": [
-      {
-        "date": "2020-04-30T09:24:19.933Z",
-        "amount": 5
-      },
-      {
-        "date": "2020-05-01T09:24:19.933Z",
-        "amount": 5
-      }
-    ],
-    "common_usage": [
-      1,
-      3,
-      5,
-      10,
-      15
-    ],
-    "id": 1
-  },
-  {
-    "name": "Pelago Stavanger Taxi ",
-    "units": "km",
-    "usage": [
-      {
-        "date": "2020-04-30T09:32:14.822Z",
-        "amount": 30
-      },
-      {
-        "date": "2020-05-02T09:32:14.822Z",
-        "amount": 30
-      }
-    ],
-    "common_usage": [
-      5,
-      10,
-      15,
-      30,
-      50
-    ],
-    "id": 2
-  },
-  {
-    "name": "Pelago Stavanger commuter",
-    "units": "km",
-    "usage": [],
-    "common_usage": [
-      7,
-      15,
-      20,
-      40
-    ],
-    "id": 3
-  },
-  {
-    "name": "Surly Karate Monkey",
-    "units": "km",
-    "usage": [],
-    "common_usage": [
-      1,
-      5,
-      10,
-      20
-    ],
-    "id": 4
-  },
-  {
-    "name": "Pelago San Sebastian",
-    "units": "km",
-    "usage": [],
-    "common_usage": [
-      1,
-      5,
-      10,
-      15,
-      20
-    ],
-    "id": 5
-  },
-  {
-    "name": "Cinelli Experience",
-    "units": "km",
-    "usage": [],
-    "common_usage": [
-      10,
-      20,
-      30,
-      50,
-      70
-    ],
-    "id": 6
-  },
-  {
-    "name": "GT timberline",
-    "units": "km",
-    "usage": [],
-    "common_usage": [
-      5,
-      10,
-      15,
-      20,
-      25
-    ],
-    "id": 7
-  }
-]
+app.get('/', (request, response) => {
+  response.send('<h1>Hello World!</h1>')
+})
 
-  const generateId = () => {
-    const maxId = items.length > 0
-      ? Math.max(...items.map(n => n.id))
-      : 0
-    return maxId+1
-  }
+app.get('/api/items', (request, response, next) => {
+  Item.find({}).then(items=>
+    response.json(items.map(item=>item.toJSON()))
+  ).catch(error=>next(error))
+})
 
-  app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
-  })
-
-  app.get('/api/items', (request, response) => {
-    response.json(items)
-  })
-
-  app.get('/api/items/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const item = items.find(item => item.id === id)
+app.get('/api/items/:id', (request, response, next) => {
+  Item.findById(request.params.id).then(item=>{
     if (item) {
-      response.json(item)
+      response.json(item.toJSON())
     } else {
       response.status(404).end()
     }
-
-  })
-
-  app.delete('/api/items/:id', (request, response) => {
-  const id = Number(request.params.id)
-  items = items.filter(item => item.id !== id)
-
-  response.status(204).end()
+  }).catch(error=>next(error))
 })
 
+app.post('/api/items', (request, response, next) => {
 
-/*blogsRouter.put('/:id', async (request, response) => {
+  const body = request.body
+
+  if (!body.name) {
+    return response.status(400).json({
+      error: 'item name is missing'
+    })
+  }
+
+  const item = new Item({
+    name: body.name,
+    units: body.units,
+    use: [],
+    common_usecases: body.common_usecases||[]
+  })
+
+  item.save().then(savedItem => {
+    response.json(item.toJSON())
+  })
+})
+
+app.post('/api/items/:id/use', async (request, response) => {
+  const body = request.body
+  const newUse = {
+    date: body.date,
+    amount: body.amount
+  }
+  console.log(newUse)
   try {
-    const body = validateBlogParams(request.body)
-    if (body === null) {
-      response.status(400).send({error: 'bad params given'})
+    const item = await Item.findById(request.params.id)
+    if (item) {
+      item.use = item.use.concat(newUse)
+      console.log(item.use)
+      const updatedItem = await item.save()
+      response.json(updatedItem.toJSON())
     } else {
-    const item = {
-      name: body.name,
-      units: body.units,
-      common_usages: body.common_usages,
-      usages: body.usages,
-      id: body.id,
-    }
-      }
-
-      const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true }).populate('user', {username: 1, name:1}).populate('comments', {_id: 1, content:1})
-      response.json(formatBlog(updatedBlog))
+      response.status(400).end()
     }
   } catch (error) {
-    console.log(error)
-    response.status(400).send({ error: 'id does not exist' })
+    next(error)
   }
-})*/
-  app.put('/api/items/:id', (request, response) => {
-    const body = request.body
-    const item = {
-      name: body.name,
-      units: body.units,
-      common_usage: body.common_usage,
-      usage: body.usage,
-      id: body.id,
-    }
+})
 
-    items = items.filter(i => i.id !== item.id).concat(item)
-    response.status(204).end()
+app.put('/api/items/:id', (request, response, next) => {
+  const body = request.body
+  const item = new Item({
+    _id: request.params.id,
+    name: body.name,
+    units: body.units,
+    use: body.use,
+    common_usecases: body.common_usecases
+  })
+
+  Item.findByIdAndUpdate(request.params.id, item, { new: true })
+    .then(updatedItem=> {
+      response.json(updatedItem.toJSON())
+    }).catch(error=>next(error))
 
 })
 
-  app.post('/api/items', (request, response) => {
-
-    const body = request.body
-    console.log(request.body)
-    if (!body.name) {
-      return response.status(400).json({
-        error: 'item name is missing'
-      })
+app.delete('/api/items/:id', (request, response, next) => {
+  Item.findById(request.params.id).then(item => {
+    if (item) {
+      Item.remove(item).then(response.status(204).end())
+    } else {
+      response.status(404).end()
     }
+  }).catch(error=>next(error))
+})
 
-    const item = {
-      name: body.name,
-      units: body.units,
-      common_usage: body.common_usage||[],
-      usage: [],
-      id: generateId(),
-    }
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
 
-    items = items.concat(item)
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+  return response.status(400).json({ error: error.message })
+}
 
-    response.json(item)
-  })
+  next(error)
+}
 
-  const PORT = process.env.PORT || 3001
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  })
+app.use(errorHandler)
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' }
+  )}
+
+app.use(unknownEndpoint)
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
