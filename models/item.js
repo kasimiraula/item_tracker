@@ -23,7 +23,7 @@ const itemSchema = new mongoose.Schema({
     minlength: 1,
     required: true
   },
-  common_usecase: Array,
+  common_usecases: Array,
   use: Array,
 })
 

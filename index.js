@@ -29,9 +29,8 @@ app.get('/api/items/:id', (request, response, next) => {
   }).catch(error=>next(error))
 })
 
-app.post('/api/items', (request, response, next) => {
-
-  const body = request.body
+app.post('/api/items', async (request, response, next) => {
+  const body=request.body
 
   if (!body.name) {
     return response.status(400).json({
@@ -39,39 +38,22 @@ app.post('/api/items', (request, response, next) => {
     })
   }
 
-  const item = new Item({
-    name: body.name,
-    units: body.units,
-    use: [],
-    common_usecases: body.common_usecases||[]
-  })
-
-  item.save().then(savedItem => {
-    response.json(item.toJSON())
-  })
-})
-
-app.post('/api/items/:id/use', async (request, response) => {
-  const body = request.body
-  const newUse = {
-    date: body.date,
-    amount: body.amount
-  }
-  console.log(newUse)
   try {
-    const item = await Item.findById(request.params.id)
-    if (item) {
-      item.use = item.use.concat(newUse)
-      console.log(item.use)
-      const updatedItem = await item.save()
-      response.json(updatedItem.toJSON())
-    } else {
-      response.status(400).end()
-    }
+    const item = new Item({
+      name: body.name,
+      units: body.units,
+      use: [],
+      common_usecases: body.common_usecases||[]
+    })
+
+    const savedItem = await item.save()
+    response.json(savedItem.toJSON())
+
   } catch (error) {
     next(error)
   }
 })
+
 
 app.put('/api/items/:id', (request, response, next) => {
   const body = request.body
@@ -106,8 +88,8 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-  return response.status(400).json({ error: error.message })
-}
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
@@ -115,8 +97,8 @@ const errorHandler = (error, request, response, next) => {
 app.use(errorHandler)
 
 const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' }
-  )}
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
 app.use(unknownEndpoint)
 
