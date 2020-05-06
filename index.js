@@ -43,7 +43,7 @@ app.post('/api/items', async (request, response, next) => {
       name: body.name,
       units: body.units,
       use: [],
-      common_usecases: body.common_usecases||[]
+      common_usecases: body.common_usecases.map(u=>Numeric(u))||[]
     })
 
     const savedItem = await item.save()
