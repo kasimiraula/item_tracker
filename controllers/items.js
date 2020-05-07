@@ -43,6 +43,27 @@ itemsRouter.post('/', async (request, response, next) => {
   }
 })
 
+itemsRouter.post('/:id/use', async (request, response, next) => {
+  const body = request.body
+  const newUse = {
+    date: body.date,
+    amount: body.amount
+  }
+  console.log(newUse)
+  try {
+    const item = await Item.findById(request.params.id)
+    if (item) {
+      item.use = item.use.concat(newUse)
+      console.log(item.use)
+      const updatedItem = await item.save()
+      response.json(updatedItem.toJSON())
+    } else {
+      response.status(400).end()
+    }
+  } catch (error) {
+    next(error)
+  }
+})
 
 itemsRouter.put('/:id', (request, response, next) => {
   const body = request.body
