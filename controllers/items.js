@@ -1,63 +1,74 @@
 
+const itemsRouter =require('express').Router()
+const Item = require('../models/item')
 
-app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
-})
-
-app.get('/api/items', (request, response) => {
+itemsRouter.get('/', (request, response, next) => {
   Item.find({}).then(items=>
     response.json(items.map(item=>item.toJSON()))
-  )
+  ).catch(error=>next(error))
 })
 
-app.get('/api/items/:id', (request, response) => {
-  try {
-    Item.findById(request.params.id).then(item=>{
+itemsRouter.get('/:id', (request, response, next) => {
+  Item.findById(request.params.id).then(item=>{
+    if (item) {
       response.json(item.toJSON())
-    })
-  } catch (e) {
-    response.status(404).end()
-  }
+    } else {
+      response.status(404).end()
+    }
+  }).catch(error=>next(error))
 })
 
-app.post('/api/items', async (request, response) => {
-  const body = request.body
+itemsRouter.post('/', async (request, response, next) => {
+  const body=request.body
+
   if (!body.name) {
     return response.status(400).json({
       error: 'item name is missing'
     })
   }
 
-  const item = new Item({
-    name: body.name,
-    units: body.units,
-    use: [],
-    common_usecase: body.common_usecase||[]
-  })
+  try {
+    const item = new Item({
+      name: body.name,
+      units: body.units,
+      use: [],
+      common_usecases: body.common_usecases.map(u=>Numeric(u))||[]
+    })
 
-  const savedItem = await item.save()
-  response.json(item.toJSON())
+    const savedItem = await item.save()
+    response.json(savedItem.toJSON())
+
+  } catch (error) {
+    next(error)
+  }
 })
 
-app.post('/api/items/:id/use', async (request, response) => {
 
-})
-
-app.delete('/api/items/:id', async (request, response) => {
-  item = await Item.findById(request.params.id)
-  await Item.remove(item)
-  response.status(204).end()
-})
-
-app.put('/api/items/:id', (request, response) => {
+itemsRouter.put('/:id', (request, response, next) => {
   const body = request.body
   const item = new Item({
+    _id: request.params.id,
     name: body.name,
     units: body.units,
-    usage: body.use,
-    common_usecase: body.common_usecase
+    use: body.use,
+    common_usecases: body.common_usecases
   })
 
   Item.findByIdAndUpdate(request.params.id, item, { new: true })
-  response.status(204).end()
+    .then(updatedItem=> {
+      response.json(updatedItem.toJSON())
+    }).catch(error=>next(error))
+
 })
+
+itemsRouter.delete('/:id', (request, response, next) => {
+  Item.findById(request.params.id).then(item => {
+    if (item) {
+      Item.remove(item).then(response.status(204).end())
+    } else {
+      response.status(404).end()
+    }
+  }).catch(error=>next(error))
+})
+
+module.exports = itemsRouter

@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "lint": "eslint .",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest  --verbose",
     "build:ui": "rm -rf build && cd ~/Documents/projektit/item_manager_frontend && npm run build --prod && cp -r build ~/Documents/projektit/item_tracker/",
     "deploy": "git push heroku master",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
@@ -24,6 +24,10 @@
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-plugin-react": "^7.19.0",
+    "jest": "^26.0.1",
     "nodemon": "^2.0.3"
+  },
+  "jest": {
+    "testEnvironment":"node"
   }
 }
