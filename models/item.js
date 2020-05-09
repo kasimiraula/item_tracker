@@ -14,7 +14,10 @@ const itemSchema = new mongoose.Schema({
     required: true
   },
   common_usecases: Array,
-  use: Array,
+  use: [{
+    amount : Number,
+    date : String
+     }],
 })
 
 itemSchema.set('toJSON', {

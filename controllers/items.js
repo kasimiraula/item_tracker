@@ -49,13 +49,11 @@ itemsRouter.post('/:id/use', async (request, response, next) => {
     date: body.date,
     amount: body.amount
   }
-  console.log(newUse)
   try {
     const item = await Item.findById(request.params.id)
     if (item) {
       item.use = item.use.concat(newUse)
-      console.log(item.use)
-      const updatedItem = await item.save()
+      const updatedItem = await Item.findByIdAndUpdate(request.params.id, item, { new: true })
       response.json(updatedItem.toJSON())
     } else {
       response.status(400).end()
