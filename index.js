@@ -2,13 +2,14 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 const mongoose = require('mongoose')
-const itemsRouter = require('./controllers/items')
-const loginRouter = require('./controllers/login')
-const usersRouter = require('./controllers/users')
 
 const logger = require('./utils/logger')
 const config = require('./utils/config')
 const middleware = require('./utils/middleware')
+
+const itemsRouter = require('./controllers/items')
+const loginRouter = require('./controllers/login')
+const usersRouter = require('./controllers/users')
 
 app.use(express.static('build'))
 app.use(express.json())
