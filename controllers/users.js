@@ -12,7 +12,9 @@ usersRouter.get('/', async (request, response) => {
 usersRouter.post('/', async (request, response) => {
 
   try {
-    const body = await validateParams(request.body, response)
+    const body = request.body
+    // fix this later
+    // const body = await validateParams(request.body, response)
     if (body === null) {
       return response.status(400).send()
     } else {
@@ -22,7 +24,6 @@ usersRouter.post('/', async (request, response) => {
         username: body.username,
         name: body.name,
         passwordHash,
-        adult: body.adult || true
       })
 
       const savedUser = await user.save()

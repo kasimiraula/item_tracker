@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+/*const mongoose = require('mongoose')
 mongoose.set('useFindAndModify', false)
 
 const Use = mongoose.model('Use', {
@@ -6,7 +6,7 @@ const Use = mongoose.model('Use', {
   date: Date
 })
 
-/*const mongoose = require('mongoose')
+const mongoose = require('mongoose')
 
 const Comment = mongoose.model('Comment', {
   content: String,

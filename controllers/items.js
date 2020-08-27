@@ -20,10 +20,18 @@ itemsRouter.get('/:id', (request, response, next) => {
 
 itemsRouter.post('/', async (request, response, next) => {
   const body=request.body
-
+  console.log(body)
   if (!body.name) {
     return response.status(400).json({
       error: 'item name is missing'
+    })
+  }
+
+  const err = validateItemParams(body)
+
+  if (err.length > 0) {
+    return response.status(400).json({
+      error: err
     })
   }
 
@@ -32,7 +40,7 @@ itemsRouter.post('/', async (request, response, next) => {
       name: body.name,
       units: body.units,
       use: [],
-      common_usecases: body.common_usecases.map(u=>Numeric(u))||[]
+      common_usecases: body.common_usecases||[]
     })
 
     const savedItem = await item.save()
@@ -90,4 +98,17 @@ itemsRouter.delete('/:id', (request, response, next) => {
   }).catch(error=>next(error))
 })
 
+const validateItemParams = async (body) => {
+  let items = await Item.find({name: body.name})
+
+  let err = ''
+
+  if (items.length >0) {
+    err = 'item name is already taken'
+  } else if (body.name.length < 2) {
+    err = 'item name has to be at least 2 digits long'
+  }
+
+  return err
+}
 module.exports = itemsRouter

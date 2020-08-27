@@ -18,6 +18,7 @@ const itemSchema = new mongoose.Schema({
     amount : Number,
     date : String
      }],
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 })
 
 itemSchema.set('toJSON', {

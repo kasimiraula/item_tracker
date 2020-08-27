@@ -1,11 +1,18 @@
 const mongoose = require('mongoose')
-mongoose.set('useFindAndModify', false)
 
-const User = mongoose.model('User', {
-  username: String,
+const userSchema = mongoose.Schema({
+  username: {
+    type: String,
+    unique: true
+  },
   name: String,
   passwordHash: String,
-  items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }]
+  items: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Item'
+    }
+  ],
 })
 
 userSchema.set('toJSON', {
@@ -13,8 +20,11 @@ userSchema.set('toJSON', {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
+    // the passwordHash should not be revealed
+    delete returnedObject.passwordHash
   }
 })
 
-module.exports = mongoose.model('Item', itemSchema)
+const User = mongoose.model('User', userSchema)
+
 module.exports = User
