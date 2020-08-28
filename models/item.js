@@ -5,7 +5,7 @@ mongoose.set('useFindAndModify', false)
 const itemSchema = new mongoose.Schema({
   name: {
     type: String,
-    minlength: 4,
+    minlength: 3,
     required: true
   },
   units: {
