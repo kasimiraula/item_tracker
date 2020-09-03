@@ -13,6 +13,7 @@ usersRouter.post('/', async (request, response) => {
 
   try {
     const body = request.body
+    console.log(body)
     // fix this later
     // const body = await validateParams(request.body, response)
     if (body === null) {
@@ -24,6 +25,7 @@ usersRouter.post('/', async (request, response) => {
         username: body.username,
         name: body.name,
         passwordHash,
+        items:[]
       })
 
       const savedUser = await user.save()
