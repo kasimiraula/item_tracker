@@ -72,29 +72,17 @@ itemsRouter.post('/', async (request, response, next) => {
 })
 
 itemsRouter.post('/:id/use', async (request, response, next) => {
-  const body = request.body
-  const newUse = {
-    date: body.date,
-    amount: body.amount
-  }
-  try {
 
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
-      if (!request.token || !decodedToken.id) {
-        return response.status(401).json({ error: 'token missing or invalid' })
-      }
-
-    const item = await Item.findById(request.params.id)
-    if (item) {
-      item.use = item.use.concat(newUse)
-      const updatedItem = await Item.findByIdAndUpdate(request.params.id, item, { new: true })
-      response.json(updatedItem.toJSON())
-    } else {
-      response.status(400).end()
-    }
-  } catch (error) {
-    next(error)
+  const user_id = checkToken(request, response)
+  const body=request.body
+  const item = await Item.findById(request.params.id)
+  if (item) {
+    const newUse = {date: body.date, amount: body.amount}
+    item.use = item.use.concat(newUse)
+    const updatedItem = await Item.findByIdAndUpdate(request.params.id, item, { new: true })
+    response.json(updatedItem.toJSON())
+  } else {
+    response.status(400).end()
   }
 })
 
